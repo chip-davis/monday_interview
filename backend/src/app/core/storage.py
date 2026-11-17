@@ -2,12 +2,12 @@
 Fragrance storage.
 """
 
-import os
 from typing import Protocol, TypedDict, cast
 
 import monday_code
 from monday_code.exceptions import NotFoundException
 
+from app.core.settings import settings
 from app.schemas.fragrance import Fragrance
 
 KEY_PREFIX = "fragrance:"
@@ -102,5 +102,10 @@ class InMemoryFragranceStore:
         _ = self.data.pop(fragrance_id, None)
 
 
+_memory_store = InMemoryFragranceStore()
+
 def get_store() -> FragranceStore:
-    return MondayFragranceStore(os.environ["MONDAY_ACCESS_TOKEN"])
+    if settings.storage == "memory":
+        return _memory_store
+    assert settings.monday_access_token is not None
+    return MondayFragranceStore(settings.monday_access_token.get_secret_value())
