@@ -24,6 +24,10 @@ dev-backend:
 dev-frontend:
     npm run dev
 
+[working-directory: 'frontend']
+build:
+    npm run build
+
 check: check-backend check-frontend
 
 [working-directory: 'backend']

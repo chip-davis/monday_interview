@@ -86,7 +86,7 @@ export const getListFragrancesUrl = () => {
 
 
 
-  return `/fragrances`
+  return `/api/fragrances`
 }
 
 /**
@@ -116,7 +116,7 @@ export const listFragrances = async ( options?: RequestInit): Promise<listFragra
 
 export const getListFragrancesQueryKey = () => {
     return [
-    `/fragrances`
+    `/api/fragrances`
     ] as const;
     }
 
@@ -212,7 +212,7 @@ export const getCreateFragranceUrl = () => {
 
 
 
-  return `/fragrances`
+  return `/api/fragrances`
 }
 
 /**
@@ -309,7 +309,7 @@ export const getGetFragranceUrl = (fragranceId: string,) => {
 
 
 
-  return `/fragrances/${fragranceId}`
+  return `/api/fragrances/${fragranceId}`
 }
 
 /**
@@ -339,7 +339,7 @@ export const getFragrance = async (fragranceId: string, options?: RequestInit): 
 
 export const getGetFragranceQueryKey = (fragranceId: string,) => {
     return [
-    `/fragrances/${fragranceId}`
+    `/api/fragrances/${fragranceId}`
     ] as const;
     }
 
@@ -435,7 +435,7 @@ export const getUpdateFragranceUrl = (fragranceId: string,) => {
 
 
 
-  return `/fragrances/${fragranceId}`
+  return `/api/fragrances/${fragranceId}`
 }
 
 /**
@@ -533,7 +533,7 @@ export const getDeleteFragranceUrl = (fragranceId: string,) => {
 
 
 
-  return `/fragrances/${fragranceId}`
+  return `/api/fragrances/${fragranceId}`
 }
 
 /**

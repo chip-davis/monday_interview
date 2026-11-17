@@ -5,7 +5,7 @@
     "version": "0.1.0"
   },
   "paths": {
-    "/fragrances": {
+    "/api/fragrances": {
       "get": {
         "tags": [
           "fragrances"
@@ -69,7 +69,7 @@
         }
       }
     },
-    "/fragrances/{fragrance_id}": {
+    "/api/fragrances/{fragrance_id}": {
       "get": {
         "tags": [
           "fragrances"
