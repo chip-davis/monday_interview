@@ -41,3 +41,7 @@ check-frontend:
 fmt:
     uv run ruff check --fix src
     uv run ruff format src
+
+gen:
+    cd backend && uv run python -c "import json; from app.main import app; print(json.dumps(app.openapi(), indent=2))" > ../frontend/openapi.json
+    cd frontend && npm run gen:api
