@@ -2,9 +2,8 @@
 Fragrance storage.
 """
 
-from typing import Protocol, TypedDict, cast
-
 from collections.abc import Iterable
+from typing import Protocol, TypedDict, cast
 
 import monday_code
 from monday_code.exceptions import NotFoundException
@@ -102,6 +101,7 @@ class InMemoryFragranceStore:
 
     async def delete(self, fragrance_id: str) -> None:
         _ = self.data.pop(fragrance_id, None)
+
 
 from app.core.seed import SAMPLE_FRAGRANCES
 
