@@ -16,4 +16,5 @@ class Settings(BaseSettings):
             raise ValueError("MONDAY_ACCESS_TOKEN is required when STORAGE=monday")
         return self
 
+
 settings = Settings()

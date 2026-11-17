@@ -104,6 +104,7 @@ class InMemoryFragranceStore:
 
 _memory_store = InMemoryFragranceStore()
 
+
 def get_store() -> FragranceStore:
     if settings.storage == "memory":
         return _memory_store

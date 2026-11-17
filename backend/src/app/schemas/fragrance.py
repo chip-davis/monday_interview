@@ -11,11 +11,13 @@ class FragranceCreate(BaseModel):
     category: str
     image_url: str
 
+
 class FragranceUpdate(BaseModel):
     name: str | None = None
     description: str | None = None
     category: str | None = None
     image_url: str | None = None
+
 
 class Fragrance(FragranceCreate):
     id: str
