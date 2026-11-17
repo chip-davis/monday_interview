@@ -1,12 +1,17 @@
 import OrderForm, { type Option } from "./OrderForm";
-import { sampleFragrances } from "./fragrances";
-
-const options: Option[] = sampleFragrances.map((f) => ({
-  label: f.name,
-  value: f.id,
-}));
+import { useListFragrances } from "./api/gen";
 
 export default function App() {
+  const {
+    data: options = [],
+    isPending,
+    isError,
+  } = useListFragrances({
+    query: {
+      select: (res) =>
+        res.data.map((f): Option => ({ label: f.name, value: f.id })),
+    },
+  });
   return (
     <main
       style={{
@@ -31,7 +36,13 @@ export default function App() {
           gap: 20,
         }}
       >
-        <OrderForm options={options} />
+        {isPending ? (
+          <p>Loading fragrances…</p>
+        ) : isError ? (
+          <p>Couldn't load fragrances.</p>
+        ) : (
+          <OrderForm options={options} />
+        )}
       </div>
     </main>
   );
