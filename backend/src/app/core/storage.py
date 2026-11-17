@@ -4,6 +4,8 @@ Fragrance storage.
 
 from typing import Protocol, TypedDict, cast
 
+from collections.abc import Iterable
+
 import monday_code
 from monday_code.exceptions import NotFoundException
 
@@ -86,8 +88,8 @@ class MondayFragranceStore:
 class InMemoryFragranceStore:
     """Dict-backed store for local dev and tests"""
 
-    def __init__(self) -> None:
-        self.data: dict[str, Fragrance] = {}
+    def __init__(self, seed: Iterable[Fragrance] = ()) -> None:
+        self.data: dict[str, Fragrance] = {f.id: f for f in seed}
 
     async def get(self, fragrance_id: str) -> Fragrance | None:
         return self.data.get(fragrance_id)
@@ -101,8 +103,9 @@ class InMemoryFragranceStore:
     async def delete(self, fragrance_id: str) -> None:
         _ = self.data.pop(fragrance_id, None)
 
+from app.core.seed import SAMPLE_FRAGRANCES
 
-_memory_store = InMemoryFragranceStore()
+_memory_store = InMemoryFragranceStore(SAMPLE_FRAGRANCES)
 
 
 def get_store() -> FragranceStore:
