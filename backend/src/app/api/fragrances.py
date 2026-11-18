@@ -1,3 +1,4 @@
+import logging
 from datetime import UTC, datetime
 from typing import Annotated
 from uuid import uuid4
@@ -9,6 +10,8 @@ from app.schemas.fragrance import Fragrance, FragranceCreate, FragranceUpdate
 
 router = APIRouter(prefix="/fragrances", tags=["fragrances"])
 Store = Annotated[FragranceStore, Depends(get_store)]
+
+logger = logging.getLogger(__name__)
 
 
 async def _get_or_404(store: FragranceStore, fragrance_id: str) -> Fragrance:
@@ -37,6 +40,7 @@ async def create_fragrance(body: FragranceCreate, store: Store) -> Fragrance:
         body.model_dump() | {"id": str(uuid4()), "created_at": now, "updated_at": now}
     )
     await store.save(fragrance)
+    logger.info("created fragrance %s (%s)", fragrance.id, fragrance.name)
     return fragrance
 
 
@@ -48,6 +52,7 @@ async def update_fragrance(
     changes = body.model_dump(exclude_none=True)
     updated = current.model_copy(update={**changes, "updated_at": datetime.now(UTC)})
     await store.save(updated)
+    logger.info("updated fragrance %s: %s", fragrance_id, sorted(changes))
     return updated
 
 
@@ -55,3 +60,4 @@ async def update_fragrance(
 async def delete_fragrance(fragrance_id: str, store: Store) -> None:
     _ = await _get_or_404(store, fragrance_id)
     await store.delete(fragrance_id)
+    logger.info("deleted fragrance %s", fragrance_id)

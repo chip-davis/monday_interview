@@ -1,3 +1,4 @@
+import logging
 from datetime import UTC, datetime, timedelta
 from urllib.parse import urlencode
 
@@ -15,6 +16,8 @@ router = APIRouter(prefix="/oauth", include_in_schema=False)
 
 AUTHORIZE_URL = "https://auth.monday.com/oauth2/authorize"
 TOKEN_URL = "https://auth.monday.com/oauth2/token"
+
+logger = logging.getLogger(__name__)
 
 
 class _State(BaseModel):
@@ -45,6 +48,12 @@ async def oauth_start(
         "state": state,
     }
 
+    logger.info(
+        "oauth start: account %s, user %s, redirect_uri %s",
+        session.account_id,
+        session.user_id,
+        params["redirect_uri"],
+    )
     return RedirectResponse(f"{AUTHORIZE_URL}?{urlencode(params)}")
 
 
@@ -57,6 +66,7 @@ async def oauth_callback(
             jwt.decode(state, secret, algorithms=["HS256"])
         ).account_id
     except jwt.PyJWTError as exc:
+        logger.warning("oauth callback rejected: %r", exc)
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "invalid state") from exc
 
     async with httpx.AsyncClient() as client:
@@ -69,9 +79,17 @@ async def oauth_callback(
                 "redirect_uri": str(request.url_for("oauth_callback")),
             },
         )
+    if res.is_error:
+        logger.error(
+            "oauth token exchange failed for account %s: %s %s",
+            account_id,
+            res.status_code,
+            res.text[:500],
+        )
     _ = res.raise_for_status()
     token = _TokenResponse.model_validate_json(res.content)
     await save_account_token(account_id, token.access_token)
+    logger.info("oauth connected: account %s", account_id)
     return HTMLResponse(
         "<p>Connected. You can close this window.</p><script>window.close()</script>"
     )

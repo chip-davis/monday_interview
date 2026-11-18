@@ -2,6 +2,7 @@
 Fragrance storage.
 """
 
+import logging
 from collections.abc import Iterable
 from typing import Annotated, Protocol, TypedDict, cast
 
@@ -16,6 +17,8 @@ from app.core.tokens import get_account_token
 from app.schemas.fragrance import Fragrance
 
 KEY_PREFIX = "fragrance:"
+
+logger = logging.getLogger(__name__)
 
 
 class _SearchRecord(TypedDict):
@@ -120,5 +123,6 @@ async def get_store(
         return _memory_store
     token = await get_account_token(session.account_id)
     if token is None:
+        logger.info("account %s has not connected yet", session.account_id)
         raise HTTPException(status.HTTP_403_FORBIDDEN, "oauth_required")
     return MondayFragranceStore(token)
