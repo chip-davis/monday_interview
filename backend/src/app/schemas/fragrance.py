@@ -18,7 +18,7 @@ class FragranceUpdate(BaseModel):
     description: str | None = None
     category: str | None = None
     image_url: str | None = None
-    recipe: str = ""
+    recipe: str | None = None
 
 
 class Fragrance(FragranceCreate):

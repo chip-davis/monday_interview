@@ -3,12 +3,16 @@ Fragrance storage.
 """
 
 from collections.abc import Iterable
-from typing import Protocol, TypedDict, cast
+from typing import Annotated, Protocol, TypedDict, cast
 
 import monday_code
+from fastapi import Depends, status
+from fastapi.exceptions import HTTPException
 from monday_code.exceptions import NotFoundException
 
+from app.core.auth import Session, get_session
 from app.core.settings import settings
+from app.core.tokens import get_account_token
 from app.schemas.fragrance import Fragrance
 
 KEY_PREFIX = "fragrance:"
@@ -109,8 +113,12 @@ from app.core.seed import SAMPLE_FRAGRANCES
 _memory_store = InMemoryFragranceStore(SAMPLE_FRAGRANCES)
 
 
-def get_store() -> FragranceStore:
+async def get_store(
+    session: Annotated[Session, Depends(get_session)],
+) -> FragranceStore:
     if settings.storage == "memory":
         return _memory_store
-    assert settings.monday_access_token is not None
-    return MondayFragranceStore(settings.monday_access_token.get_secret_value())
+    token = await get_account_token(session.account_id)
+    if token is None:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "oauth_required")
+    return MondayFragranceStore(token)

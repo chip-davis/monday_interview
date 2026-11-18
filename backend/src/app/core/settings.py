@@ -1,6 +1,6 @@
-from typing import ClassVar, Literal, Self
+from typing import ClassVar, Literal
 
-from pydantic import SecretStr, model_validator
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -10,13 +10,8 @@ class Settings(BaseSettings):
     )
 
     storage: Literal["monday", "memory"] = "monday"
-    monday_access_token: SecretStr | None = None
-
-    @model_validator(mode="after")
-    def _require_monday_token(self) -> Self:
-        if self.storage == "monday" and self.monday_access_token is None:
-            raise ValueError("MONDAY_ACCESS_TOKEN is required when STORAGE=monday")
-        return self
+    monday_client_id: str
+    monday_client_secret: SecretStr
 
 
-settings = Settings()
+settings = Settings.model_validate({})

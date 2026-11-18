@@ -12,7 +12,7 @@ SAMPLE_FRAGRANCES = [
         image_url="https://example.com/herb_garden.jpg",
         created_at=_now,
         updated_at=_now,
-        recipe="2 drops of rosemary. 3 drops of basil."
+        recipe="2 drops of rosemary. 3 drops of basil.",
     ),
     Fragrance(
         id="2",
@@ -22,7 +22,7 @@ SAMPLE_FRAGRANCES = [
         image_url="https://example.com/citrus_grove.jpg",
         created_at=_now,
         updated_at=_now,
-        recipe="2 drops of lemon. 3 drops of orange."
+        recipe="2 drops of lemon. 3 drops of orange.",
     ),
     Fragrance(
         id="3",
@@ -32,7 +32,7 @@ SAMPLE_FRAGRANCES = [
         image_url="https://example.com/cedar_smoke.jpg",
         created_at=_now,
         updated_at=_now,
-        recipe="1 drop of cedar. 3 drops of smoke."
+        recipe="1 drop of cedar. 3 drops of smoke.",
     ),
     Fragrance(
         id="4",
@@ -42,6 +42,6 @@ SAMPLE_FRAGRANCES = [
         image_url="https://example.com/rose_petal.jpg",
         created_at=_now,
         updated_at=_now,
-        recipe="2 drops of rose. 1 drop of grass."
+        recipe="2 drops of rose. 1 drop of grass.",
     ),
 ]

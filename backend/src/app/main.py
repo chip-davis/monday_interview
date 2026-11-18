@@ -9,6 +9,7 @@ from starlette.responses import Response
 from starlette.types import Scope
 
 from app.api.fragrances import router as fragrances_router
+from app.api.oauth import router as oauth_router
 
 STATIC_DIR = Path("static")
 
@@ -30,6 +31,7 @@ def _operation_id(route: APIRoute) -> str:
 
 app = FastAPI(generate_unique_id_function=_operation_id)
 app.include_router(fragrances_router, prefix="/api")
+app.include_router(oauth_router, prefix="/api")
 
 if STATIC_DIR.is_dir():
     app.mount("/", SPAStaticFiles(directory=STATIC_DIR, html=True), name="frontend")
