@@ -31,6 +31,7 @@ import {
 import type { Fragrance, FragranceCreate } from "./api/gen/model";
 import { monday } from "./monday";
 import ConnectPrompt from "./ConnectPrompt";
+import CategoryDropdown from "./CategoryDropdown";
 import { isOAuthRequired } from "./api/fetcher";
 
 const EMPTY_FORM: Required<FragranceCreate> = {
@@ -157,6 +158,10 @@ export default function FragranceManager() {
     }
   };
 
+  const categories = [...new Set(fragrances.map((f) => f.category))].sort(
+    (a, b) => a.localeCompare(b),
+  );
+
   const sorted = [...fragrances].sort(
     (a, b) =>
       a.category.localeCompare(b.category) || a.name.localeCompare(b.name),
@@ -244,12 +249,10 @@ export default function FragranceManager() {
                 onChange={setField("name")}
                 required
               />
-              <TextField
-                title="Category"
-                placeholder="e.g. Floral, Woody, Citrus"
+              <CategoryDropdown
+                categories={categories}
                 value={form.category}
                 onChange={setField("category")}
-                required
               />
               <TextArea
                 label="Description"
