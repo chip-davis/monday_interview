@@ -20,7 +20,7 @@ import {
   TextField,
   type TableColumn,
 } from "@vibe/core";
-import { Add, Delete, Edit } from "@vibe/icons";
+import { Add, Delete, Doc, Edit } from "@vibe/icons";
 import {
   getListFragrancesQueryKey,
   useCreateFragrance,
@@ -42,11 +42,17 @@ const EMPTY_FORM: Required<FragranceCreate> = {
   recipe: "",
 };
 
+type SortKey = "name" | "category";
+type SortDirection = "asc" | "desc" | "none";
+
+const isSortKey = (id: string): id is SortKey =>
+  id === "name" || id === "category";
+
 const COLUMNS: TableColumn[] = [
   { id: "name", title: "Name", width: "1fr" },
   { id: "category", title: "Category", width: "140px" },
   { id: "description", title: "Description", width: "2fr" },
-  { id: "actions", title: "", width: "96px" },
+  { id: "actions", title: "", width: "120px" },
 ];
 
 const notify = (message: string, type: "success" | "error") =>
@@ -64,8 +70,13 @@ export default function FragranceManager() {
   });
 
   const [editing, setEditing] = useState<Fragrance | null>(null);
+  const [viewingRecipe, setViewingRecipe] = useState<Fragrance | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<Required<FragranceCreate>>(EMPTY_FORM);
+  const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection }>({
+    key: "category",
+    direction: "none",
+  });
 
   const refresh = () =>
     queryClient.invalidateQueries({ queryKey: getListFragrancesQueryKey() });
@@ -162,10 +173,17 @@ export default function FragranceManager() {
     (a, b) => a.localeCompare(b),
   );
 
-  const sorted = [...fragrances].sort(
-    (a, b) =>
-      a.category.localeCompare(b.category) || a.name.localeCompare(b.name),
-  );
+  const byDefault = (a: Fragrance, b: Fragrance) =>
+    a.category.localeCompare(b.category) || a.name.localeCompare(b.name);
+
+  const sorted = [...fragrances].sort((a, b) => {
+    if (sort.direction === "none") return byDefault(a, b);
+    const order = a[sort.key].localeCompare(b[sort.key]) || byDefault(a, b);
+    return sort.direction === "asc" ? order : -order;
+  });
+
+  const sortStateFor = (key: SortKey): SortDirection =>
+    sort.key === key ? sort.direction : "none";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -205,9 +223,18 @@ export default function FragranceManager() {
         }
       >
         <TableHeader>
-          {COLUMNS.map((c) => (
-            <TableHeaderCell key={c.id} title={c.title} />
-          ))}
+          {COLUMNS.map(({ id, title }) =>
+            isSortKey(id) ? (
+              <TableHeaderCell
+                key={id}
+                title={title}
+                sortState={sortStateFor(id)}
+                onSortClicked={(direction) => setSort({ key: id, direction })}
+              />
+            ) : (
+              <TableHeaderCell key={id} title={title} />
+            ),
+          )}
         </TableHeader>
         <TableBody>
           {sorted.map((f) => (
@@ -217,14 +244,23 @@ export default function FragranceManager() {
               <TableCell>{f.description}</TableCell>
               <TableCell>
                 <IconButton
+                  icon={Doc}
+                  aria-label={`View recipe for ${f.name}`}
+                  tooltipContent="View recipe"
+                  size="small"
+                  onClick={() => setViewingRecipe(f)}
+                />
+                <IconButton
                   icon={Edit}
                   aria-label={`Edit ${f.name}`}
+                  tooltipContent="Edit"
                   size="small"
                   onClick={() => openEdit(f)}
                 />
                 <IconButton
                   icon={Delete}
                   aria-label={`Delete ${f.name}`}
+                  tooltipContent="Delete"
                   size="small"
                   loading={
                     remove.isPending &&
@@ -285,6 +321,44 @@ export default function FragranceManager() {
             loading: saving,
           }}
           secondaryButton={{ text: "Cancel", onClick: closeModal }}
+        />
+      </Modal>
+
+      <Modal
+        id="recipe-modal"
+        show={viewingRecipe !== null}
+        onClose={() => setViewingRecipe(null)}
+      >
+        <ModalBasicLayout>
+          <ModalHeader
+            title={viewingRecipe?.name ?? ""}
+            description={viewingRecipe?.category ?? ""}
+          />
+          <ModalContent>
+            {viewingRecipe?.recipe ? (
+              <Text type="text1" ellipsis={false} style={{ whiteSpace: "pre-line" }}>
+                {viewingRecipe.recipe}
+              </Text>
+            ) : (
+              <Text type="text1" color="secondary">
+                No recipe yet.
+              </Text>
+            )}
+          </ModalContent>
+        </ModalBasicLayout>
+        <ModalFooter
+          primaryButton={{
+            text: "Close",
+            onClick: () => setViewingRecipe(null),
+          }}
+          secondaryButton={{
+            text: "Edit",
+            onClick: () => {
+              const fragrance = viewingRecipe;
+              setViewingRecipe(null);
+              if (fragrance) openEdit(fragrance);
+            },
+          }}
         />
       </Modal>
     </div>
