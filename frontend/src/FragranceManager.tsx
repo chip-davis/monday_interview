@@ -31,11 +31,12 @@ import {
 import type { Fragrance, FragranceCreate } from "./api/gen/model";
 import { monday } from "./monday";
 
-const EMPTY_FORM: FragranceCreate = {
+const EMPTY_FORM: Required<FragranceCreate> = {
   name: "",
   category: "",
   description: "",
   image_url: "",
+  recipe: "",
 };
 
 const COLUMNS: TableColumn[] = [
@@ -56,7 +57,7 @@ export default function FragranceManager() {
 
   const [editing, setEditing] = useState<Fragrance | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [form, setForm] = useState<FragranceCreate>(EMPTY_FORM);
+  const [form, setForm] = useState<Required<FragranceCreate>>(EMPTY_FORM);
 
   const refresh = () =>
     queryClient.invalidateQueries({ queryKey: getListFragrancesQueryKey() });
@@ -113,6 +114,7 @@ export default function FragranceManager() {
       category: fragrance.category,
       description: fragrance.description,
       image_url: fragrance.image_url,
+      recipe: fragrance.recipe ?? "",
     });
     setModalOpen(true);
   };
@@ -126,7 +128,7 @@ export default function FragranceManager() {
     if (data.confirm) remove.mutate({ fragranceId: fragrance.id });
   };
 
-  const setField = (field: keyof FragranceCreate) => (value: string) =>
+  const setField = (field: keyof Required<FragranceCreate>) => (value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const trimmed: FragranceCreate = {
@@ -134,6 +136,7 @@ export default function FragranceManager() {
     category: form.category.trim(),
     description: form.description.trim(),
     image_url: form.image_url.trim(),
+    recipe: form.recipe.trim(),
   };
   const formValid = trimmed.name !== "" && trimmed.category !== "";
   const saving = create.isPending || update.isPending;
@@ -248,6 +251,14 @@ export default function FragranceManager() {
                 type="url"
                 value={form.image_url}
                 onChange={setField("image_url")}
+              />
+              <TextArea
+                label="Recipe"
+                placeholder={
+                  "1 drop basil. 2 drops rosemary."
+                }
+                value={form.recipe}
+                onChange={(e) => setField("recipe")(e.target.value)}
               />
             </div>
           </ModalContent>

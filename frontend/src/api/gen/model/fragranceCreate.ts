@@ -10,4 +10,5 @@ export interface FragranceCreate {
   description: string;
   category: string;
   image_url: string;
+  recipe?: string;
 }

@@ -215,6 +215,11 @@
             "type": "string",
             "title": "Image Url"
           },
+          "recipe": {
+            "type": "string",
+            "title": "Recipe",
+            "default": ""
+          },
           "id": {
             "type": "string",
             "title": "Id"
@@ -259,6 +264,11 @@
           "image_url": {
             "type": "string",
             "title": "Image Url"
+          },
+          "recipe": {
+            "type": "string",
+            "title": "Recipe",
+            "default": ""
           }
         },
         "type": "object",
@@ -315,6 +325,11 @@
               }
             ],
             "title": "Image Url"
+          },
+          "recipe": {
+            "type": "string",
+            "title": "Recipe",
+            "default": ""
           }
         },
         "type": "object",

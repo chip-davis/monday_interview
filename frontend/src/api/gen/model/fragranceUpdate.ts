@@ -10,4 +10,5 @@ export interface FragranceUpdate {
   description?: string | null;
   category?: string | null;
   image_url?: string | null;
+  recipe?: string;
 }
