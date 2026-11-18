@@ -4,7 +4,7 @@ from urllib.parse import urlencode
 
 import httpx
 import jwt
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 
@@ -29,9 +29,7 @@ class _TokenResponse(BaseModel):
 
 
 @router.get("/start")
-async def oauth_start(
-    request: Request, token: str, secret: ClientSecret
-) -> RedirectResponse:
+async def oauth_start(token: str, secret: ClientSecret) -> RedirectResponse:
     session = decode_session(token, secret)
 
     state = jwt.encode(
@@ -44,23 +42,22 @@ async def oauth_start(
     )
     params = {
         "client_id": settings.monday_client_id,
-        "redirect_uri": str(request.url_for("oauth_callback")),
+        "app_version_id": session.app_version_id,
+        "subdomain": session.slug,
         "state": state,
     }
 
     logger.info(
-        "oauth start: account %s, user %s, redirect_uri %s",
+        "oauth start: account %s, user %s, app version %s",
         session.account_id,
         session.user_id,
-        params["redirect_uri"],
+        session.app_version_id,
     )
     return RedirectResponse(f"{AUTHORIZE_URL}?{urlencode(params)}")
 
 
 @router.get("/callback")
-async def oauth_callback(
-    request: Request, code: str, state: str, secret: ClientSecret
-) -> HTMLResponse:
+async def oauth_callback(code: str, state: str, secret: ClientSecret) -> HTMLResponse:
     try:
         account_id = _State.model_validate(
             jwt.decode(state, secret, algorithms=["HS256"])
@@ -76,7 +73,6 @@ async def oauth_callback(
                 "client_id": settings.monday_client_id,
                 "client_secret": secret,
                 "code": code,
-                "redirect_uri": str(request.url_for("oauth_callback")),
             },
         )
     if res.is_error:

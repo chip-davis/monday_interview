@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 class Session(BaseModel):
     account_id: int
     user_id: int
+    app_version_id: int
+    slug: str
 
 
 ClientSecret = Annotated[str, Depends(load_client_secret)]
