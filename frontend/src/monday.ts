@@ -54,7 +54,7 @@ async function currentUserId() {
 
 export async function createOrder(order: NewOrder) {
   const salesAssociateId = await currentUserId();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Date().toLocaleDateString("en-CA");
   const categories = [...new Set(order.candles.map((c) => c.category))];
 
   const columns = {
