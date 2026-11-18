@@ -9,7 +9,7 @@ export default function App() {
   } = useListFragrances({
     query: {
       select: (res) =>
-        res.data.map((f): Option => ({ label: f.name, value: f.id })),
+        res.data.map((f): Option => ({ label: f.name, value: f.id, category: f.category })),
     },
   });
   return (
