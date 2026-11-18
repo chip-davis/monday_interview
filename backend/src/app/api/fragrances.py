@@ -33,8 +33,8 @@ async def get_fragrance(fragrance_id: str, store: Store) -> Fragrance:
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_fragrance(body: FragranceCreate, store: Store) -> Fragrance:
     now = datetime.now(UTC)
-    fragrance = Fragrance(
-        id=str(uuid4()), created_at=now, updated_at=now, **body.model_dump()
+    fragrance = Fragrance.model_validate(
+        body.model_dump() | {"id": str(uuid4()), "created_at": now, "updated_at": now}
     )
     await store.save(fragrance)
     return fragrance
@@ -53,5 +53,5 @@ async def update_fragrance(
 
 @router.delete("/{fragrance_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_fragrance(fragrance_id: str, store: Store) -> None:
-    await _get_or_404(store, fragrance_id)
+    _ = await _get_or_404(store, fragrance_id)
     await store.delete(fragrance_id)

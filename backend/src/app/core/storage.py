@@ -48,7 +48,8 @@ class MondayFragranceStore:
                 )
             except NotFoundException:
                 return None
-        return Fragrance.model_validate(res.value) if res and res.value else None
+        value: object = res.value if res else None
+        return Fragrance.model_validate(value) if value else None
 
     async def list(self) -> list[Fragrance]:
         fragrances: list[Fragrance] = []

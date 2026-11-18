@@ -1,11 +1,13 @@
-from typing import Literal, Self
+from typing import ClassVar, Literal, Self
 
 from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
+        env_file=".env", extra="ignore"
+    )
 
     storage: Literal["monday", "memory"] = "monday"
     monday_access_token: SecretStr | None = None
