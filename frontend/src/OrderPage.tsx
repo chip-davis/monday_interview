@@ -29,7 +29,7 @@ export default function OrderPage() {
       <div
         style={{
           width: "100%",
-          maxWidth: 440,
+          maxWidth: 504,
           background: "#ffffff",
           borderRadius: 8,
           boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
