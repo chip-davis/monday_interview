@@ -19,6 +19,7 @@ const COLUMNS = {
   email: "email",
   phone: "phone",
   shippingAddress: "long_text_mm973t36",
+  salesAssociate: "person",
 };
 
 export type NewOrder = {
@@ -46,7 +47,13 @@ const CREATE_ITEM = `
     }
   `;
 
+async function currentUserId() {
+  const { data } = await monday.get<{ user: { id: string } }>("context");
+  return Number(data.user.id);
+}
+
 export async function createOrder(order: NewOrder) {
+  const salesAssociateId = await currentUserId();
   const today = new Date().toISOString().slice(0, 10);
   const categories = [...new Set(order.candles.map((c) => c.category))];
 
@@ -61,6 +68,9 @@ export async function createOrder(order: NewOrder) {
     [COLUMNS.candle1]: order.candles[0].name,
     [COLUMNS.candle2]: order.candles[1].name,
     [COLUMNS.candle3]: order.candles[2].name,
+    [COLUMNS.salesAssociate]: {
+      personsAndTeams: [{ id: salesAssociateId, kind: "person" }],
+    },
     [COLUMNS.shippingAddress]: { text: order.shippingAddress.trim() },
     [COLUMNS.email]: { email: order.email.trim(), text: order.email.trim() },
     ...(order.phone.trim() && {
