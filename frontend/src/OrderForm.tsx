@@ -8,7 +8,9 @@ import {
   TextArea,
 } from "@vibe/core";
 import "@vibe/core/tokens";
-import { testViewBoard } from "./monday";
+import { useMutation } from "@tanstack/react-query";
+import { createOrder, monday } from "./monday";
+
 export type Option = { label: string; value: string; category: string };
 
 const CANDLE_COUNT = 3;
@@ -16,8 +18,6 @@ const CANDLE_COUNT = 3;
 const INSCRIPTION_MAX = 24;
 
 export default function OrderForm({ options }: { options: Option[] }) {
-
-  testViewBoard();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [quantity, setQuantity] = useState<number | null>(1);
@@ -25,6 +25,26 @@ export default function OrderForm({ options }: { options: Option[] }) {
     Array(CANDLE_COUNT).fill(null),
   );
   const [inscription, setInscription] = useState("");
+
+  const order = useMutation({
+    mutationFn: createOrder,
+    onSuccess: () => {
+      monday.execute("notice", {
+        message: "Order created",
+        type: "success",
+        timeout: 3000,
+      });
+      setCandles(Array(CANDLE_COUNT).fill(null));
+      setInscription("");
+    },
+    onError: (e) => {
+      console.error(e);
+      monday.execute("notice", {
+        message: "Couldn't create the order.",
+        type: "error",
+      });
+    },
+  });
 
   const setCandle = (index: number, option: Option | null) =>
     setCandles((prev) => prev.map((c, i) => (i === index ? option : c)));
@@ -51,11 +71,12 @@ export default function OrderForm({ options }: { options: Option[] }) {
     candles.every((c) => c !== null);
 
   const startOrder = () => {
-    console.log({
+    order.mutate({
       firstName,
       lastName,
       quantity,
-      fragrances: candles.map((c) => c?.value),
+      candles: candles.map((c) => ({ name: c!.label, category: c!.category })),
+      inscription,
     });
   };
 
@@ -119,6 +140,7 @@ export default function OrderForm({ options }: { options: Option[] }) {
       <Button
         onClick={startOrder}
         disabled={!canSubmit}
+        loading={order.isPending}
         style={{ width: "100%" }}
       >
         Start Order
