@@ -201,6 +201,7 @@ export default function OrderForm({ options }: { options: Option[] }) {
           onChange={(option: Option) => setCandle(i, option)}
           onClear={() => setCandle(i, null)}
           clearable
+          searchable
           withGroupDivider
         />
       ))}
