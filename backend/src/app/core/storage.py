@@ -10,6 +10,7 @@ import monday_code
 from fastapi import Depends, status
 from fastapi.exceptions import HTTPException
 from monday_code.exceptions import NotFoundException
+from pydantic import ValidationError
 
 from app.core.auth import Session, get_session
 from app.core.settings import settings
@@ -23,12 +24,22 @@ logger = logging.getLogger(__name__)
 
 class _SearchRecord(TypedDict):
     key: str
-    value: dict[str, object]
+    value: object
 
 
 class _SearchResponse(TypedDict, total=False):
     records: list[_SearchRecord]
     cursor: str | None
+
+
+def _parse(key: str, value: object) -> Fragrance | None:
+    try:
+        if isinstance(value, str):
+            return Fragrance.model_validate_json(value)
+        return Fragrance.model_validate(value)
+    except ValidationError:
+        logger.warning("skipping unreadable storage record %s: %.80r", key, value)
+        return None
 
 
 class FragranceStore(Protocol):
@@ -56,7 +67,7 @@ class MondayFragranceStore:
             except NotFoundException:
                 return None
         value: object = res.value if res else None
-        return Fragrance.model_validate(value) if value else None
+        return _parse(KEY_PREFIX + fragrance_id, value) if value else None
 
     async def list(self) -> list[Fragrance]:
         fragrances: list[Fragrance] = []
@@ -68,9 +79,9 @@ class MondayFragranceStore:
                     KEY_PREFIX, x_monday_access_token=self.token, cursor=cursor
                 )
                 res = cast(_SearchResponse, res or {})
-                fragrances += [
-                    Fragrance.model_validate(r["value"]) for r in res.get("records", [])
-                ]
+                for record in res.get("records", []):
+                    if fragrance := _parse(record["key"], record["value"]):
+                        fragrances.append(fragrance)
                 cursor = res.get("cursor")
                 if not cursor:
                     return fragrances
@@ -81,7 +92,7 @@ class MondayFragranceStore:
                 key=KEY_PREFIX + fragrance.id,
                 x_monday_access_token=self.token,
                 json_data_contract=monday_code.JsonDataContract(
-                    value=fragrance.model_dump(mode="json")
+                    value=fragrance.model_dump_json()
                 ),
             )
 
