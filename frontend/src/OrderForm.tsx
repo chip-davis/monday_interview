@@ -8,7 +8,7 @@ import {
   TextArea,
 } from "@vibe/core";
 import "@vibe/core/tokens";
-
+import { testViewBoard } from "./monday";
 export type Option = { label: string; value: string; category: string };
 
 const CANDLE_COUNT = 3;
@@ -16,6 +16,8 @@ const CANDLE_COUNT = 3;
 const INSCRIPTION_MAX = 24;
 
 export default function OrderForm({ options }: { options: Option[] }) {
+
+  testViewBoard();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [quantity, setQuantity] = useState<number | null>(1);
