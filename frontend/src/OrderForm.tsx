@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useState, type ReactElement } from "react";
 import {
-  Button,
   Dropdown,
   Heading,
+  MultiStepIndicator,
   NumberField,
-  TextField,
+  Steps,
+  Text,
   TextArea,
+  TextField,
+  type StepStatus,
 } from "@vibe/core";
 import "@vibe/core/tokens";
 import { useMutation } from "@tanstack/react-query";
@@ -19,19 +22,45 @@ const INSCRIPTION_MAX = 24;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const STEP_TITLES = [
+  { titleText: "Customer", subtitleText: "Contact & shipping" },
+  { titleText: "Candles", subtitleText: "Boxes & fragrances" },
+  { titleText: "Review", subtitleText: "Confirm order" },
+];
+
+const stack = { display: "flex", flexDirection: "column", gap: 16 } as const;
+const row = { display: "flex", gap: 12 } as const;
+
 export default function OrderForm({ options }: { options: Option[] }) {
+  const [step, setStep] = useState(0);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [shippingAddress, setShippingAddress] = useState("");
   const [quantity, setQuantity] = useState<number | null>(1);
   const [candles, setCandles] = useState<(Option | null)[]>(
     Array(CANDLE_COUNT).fill(null),
   );
   const [inscription, setInscription] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [shippingAddress, setShippingAddress] = useState("");
 
   const emailValid = EMAIL_PATTERN.test(email.trim());
+
+  const stepValid = [
+    firstName.trim() !== "" &&
+      lastName.trim() !== "" &&
+      emailValid &&
+      phone.trim() !== "" &&
+      shippingAddress.trim() !== "",
+    quantity !== null && quantity >= 1 && candles.every((c) => c !== null),
+    true,
+  ];
+
+  const firstInvalidStep = stepValid.indexOf(false);
+  const furthestReachable =
+    firstInvalidStep === -1 ? STEP_TITLES.length - 1 : firstInvalidStep;
+
+  const goTo = (index: number) => setStep(Math.min(index, furthestReachable));
 
   const order = useMutation({
     mutationFn: createOrder,
@@ -49,6 +78,7 @@ export default function OrderForm({ options }: { options: Option[] }) {
       setQuantity(1);
       setCandles(Array(CANDLE_COUNT).fill(null));
       setInscription("");
+      setStep(0);
     },
     onError: (e) => {
       console.error(e);
@@ -76,18 +106,8 @@ export default function OrderForm({ options }: { options: Option[] }) {
       .map(([label, options]) => ({ label, options }));
   };
 
-  const canSubmit =
-    firstName.trim() !== "" &&
-    lastName.trim() !== "" &&
-    quantity !== null &&
-    quantity >= 1 &&
-    emailValid &&
-    shippingAddress.trim() !== "" &&
-    phone.trim() !== "" &&
-    candles.every((c) => c !== null);
-
   const startOrder = () => {
-    if (quantity === null) return;
+    if (quantity === null || firstInvalidStep !== -1) return;
     order.mutate({
       firstName,
       lastName,
@@ -100,11 +120,12 @@ export default function OrderForm({ options }: { options: Option[] }) {
     });
   };
 
-  return (
-    <>
-      <Heading type="h2">Order Maker</Heading>
+  const statusOf = (index: number): StepStatus =>
+    index === step ? "active" : index < step ? "fulfilled" : "pending";
 
-      <div style={{ display: "flex", gap: 12 }}>
+  const customerStep = (
+    <div style={stack}>
+      <div style={row}>
         <div style={{ flex: 1 }}>
           <TextField
             title="First Name"
@@ -122,37 +143,45 @@ export default function OrderForm({ options }: { options: Option[] }) {
           />
         </div>
       </div>
-
-      <TextField
-        title="Email"
-        type="email"
-        value={email}
-        onChange={setEmail}
-        validation={
-          email.trim() !== "" && !emailValid
-            ? { status: "error", text: "Enter a valid email address" }
-            : undefined
-        }
-        required
-      />
-
-      <TextField
-        title="Phone (optional)"
-        type="tel"
-        placeholder="(901) 834-4495"
-        value={phone}
-        onChange={setPhone}
-      />
-
+      <div style={row}>
+        <div style={{ flex: 1 }}>
+          <TextField
+            title="Email"
+            type="email"
+            value={email}
+            onChange={setEmail}
+            validation={
+              email.trim() !== "" && !emailValid
+                ? { status: "error", text: "Enter a valid email address" }
+                : undefined
+            }
+            required
+          />
+        </div>
+        <div style={{ flex: 1 }}>
+          <TextField
+            title="Phone"
+            type="tel"
+            placeholder="(901) 834-4495"
+            value={phone}
+            onChange={setPhone}
+            required
+          />
+        </div>
+      </div>
       <TextArea
         label="Shipping Address"
-        placeholder={"225 Park Avenue South, New York, NY 10003"}
+        placeholder="225 Park Avenue South, New York, NY 10003"
         value={shippingAddress}
         onChange={(e) => setShippingAddress(e.target.value)}
         resize={false}
         required
       />
+    </div>
+  );
 
+  const candlesStep = (
+    <div style={stack}>
       <NumberField
         id="quantity"
         label="Number of boxes"
@@ -161,7 +190,6 @@ export default function OrderForm({ options }: { options: Option[] }) {
         min={1}
         required
       />
-
       {candles.map((candle, i) => (
         <Dropdown
           key={i}
@@ -176,7 +204,6 @@ export default function OrderForm({ options }: { options: Option[] }) {
           withGroupDivider
         />
       ))}
-
       <TextArea
         label="Inscription (optional)"
         placeholder="Free smells"
@@ -186,15 +213,75 @@ export default function OrderForm({ options }: { options: Option[] }) {
         showCharCount
         resize={false}
       />
+    </div>
+  );
 
-      <Button
-        onClick={startOrder}
-        disabled={!canSubmit}
-        loading={order.isPending}
-        style={{ width: "100%" }}
-      >
-        Start Order
-      </Button>
-    </>
+  const summary: [string, string][] = [
+    ["Customer", `${firstName.trim()} ${lastName.trim()}`],
+    ["Email", email.trim()],
+    ["Phone", phone.trim()],
+    ["Ship to", shippingAddress.trim()],
+    ["Boxes", String(quantity ?? "")],
+    ...candles.map((c, i): [string, string] => [
+      `Candle ${i + 1}`,
+      c ? `${c.label} (${c.category})` : "—",
+    ]),
+    ["Inscription", inscription.trim() || "—"],
+  ];
+
+  const reviewStep = (
+    <dl
+      style={{
+        display: "grid",
+        gridTemplateColumns: "max-content 1fr",
+        gap: "8px 16px",
+        margin: 0,
+      }}
+    >
+      {summary.map(([label, value]) => (
+        <div key={label} style={{ display: "contents" }}>
+          <dt>
+            <Text type="text2" color="secondary">
+              {label}
+            </Text>
+          </dt>
+          <dd style={{ margin: 0, whiteSpace: "pre-line" }}>
+            <Text type="text1" ellipsis={false}>
+              {value}
+            </Text>
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+
+  const steps: ReactElement[] = [customerStep, candlesStep, reviewStep];
+
+  return (
+    <div style={{ ...stack, gap: 24 }}>
+      <Heading type="h2">New Production Order</Heading>
+
+      <MultiStepIndicator
+        className="order-steps"
+        size="compact"
+        steps={STEP_TITLES.map((s, i) => ({ ...s, status: statusOf(i) }))}
+        onClick={(stepNumber) => goTo(stepNumber - 1)}
+      />
+
+      <Steps
+        type="numbers"
+        isContentOnTop
+        steps={steps}
+        activeStepIndex={step}
+        onChangeActiveStep={(_, index) => goTo(index)}
+        nextButtonProps={{ disabled: !stepValid[step] }}
+        finishButtonProps={{
+          children: "Start Order",
+          disabled: firstInvalidStep !== -1,
+          loading: order.isPending,
+        }}
+        onFinish={startOrder}
+      />
+    </div>
   );
 }
