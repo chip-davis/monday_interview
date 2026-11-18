@@ -17,6 +17,8 @@ const CANDLE_COUNT = 3;
 
 const INSCRIPTION_MAX = 24;
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function OrderForm({ options }: { options: Option[] }) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -25,6 +27,11 @@ export default function OrderForm({ options }: { options: Option[] }) {
     Array(CANDLE_COUNT).fill(null),
   );
   const [inscription, setInscription] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [shippingAddress, setShippingAddress] = useState("");
+
+  const emailValid = EMAIL_PATTERN.test(email.trim());
 
   const order = useMutation({
     mutationFn: createOrder,
@@ -34,6 +41,12 @@ export default function OrderForm({ options }: { options: Option[] }) {
         type: "success",
         timeout: 3000,
       });
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+      setPhone("");
+      setShippingAddress("");
+      setQuantity(1);
       setCandles(Array(CANDLE_COUNT).fill(null));
       setInscription("");
     },
@@ -68,6 +81,9 @@ export default function OrderForm({ options }: { options: Option[] }) {
     lastName.trim() !== "" &&
     quantity !== null &&
     quantity >= 1 &&
+    emailValid &&
+    shippingAddress.trim() !== "" &&
+    phone.trim() !== "" &&
     candles.every((c) => c !== null);
 
   const startOrder = () => {
@@ -78,6 +94,9 @@ export default function OrderForm({ options }: { options: Option[] }) {
       quantity,
       candles: candles.map((c) => ({ name: c!.label, category: c!.category })),
       inscription,
+      email,
+      phone,
+      shippingAddress,
     });
   };
 
@@ -104,9 +123,39 @@ export default function OrderForm({ options }: { options: Option[] }) {
         </div>
       </div>
 
+      <TextField
+        title="Email"
+        type="email"
+        value={email}
+        onChange={setEmail}
+        validation={
+          email.trim() !== "" && !emailValid
+            ? { status: "error", text: "Enter a valid email address" }
+            : undefined
+        }
+        required
+      />
+
+      <TextField
+        title="Phone (optional)"
+        type="tel"
+        placeholder="(901) 834-4495"
+        value={phone}
+        onChange={setPhone}
+      />
+
+      <TextArea
+        label="Shipping Address"
+        placeholder={"225 Park Avenue South, New York, NY 10003"}
+        value={shippingAddress}
+        onChange={(e) => setShippingAddress(e.target.value)}
+        resize={false}
+        required
+      />
+
       <NumberField
         id="quantity"
-        label="Number of kits"
+        label="Number of boxes"
         value={quantity}
         onChange={setQuantity}
         min={1}
@@ -120,7 +169,7 @@ export default function OrderForm({ options }: { options: Option[] }) {
           label={`Candle ${i + 1} - Fragrance`}
           placeholder="Select a fragrance..."
           options={optionsFor(i)}
-          value={candle ?? undefined}
+          value={candle as Option}
           onChange={(option: Option) => setCandle(i, option)}
           onClear={() => setCandle(i, null)}
           clearable

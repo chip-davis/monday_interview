@@ -16,6 +16,9 @@ const COLUMNS = {
   candle1: "text_mm97101q",
   candle2: "text_mm9760em",
   candle3: "text_mm97r059",
+  email: "email",
+  phone: "phone",
+  shippingAddress: "long_text_mm973t36",
 };
 
 export type NewOrder = {
@@ -24,6 +27,9 @@ export type NewOrder = {
   quantity: number;
   candles: { name: string; category: string }[];
   inscription: string;
+  email: string;
+  phone: string;
+  shippingAddress: string;
 };
 
 const CREATE_ITEM = `
@@ -55,6 +61,11 @@ export async function createOrder(order: NewOrder) {
     [COLUMNS.candle1]: order.candles[0].name,
     [COLUMNS.candle2]: order.candles[1].name,
     [COLUMNS.candle3]: order.candles[2].name,
+    [COLUMNS.shippingAddress]: { text: order.shippingAddress.trim() },
+    [COLUMNS.email]: { email: order.email.trim(), text: order.email.trim() },
+    ...(order.phone.trim() && {
+      [COLUMNS.phone]: { phone: order.phone.trim(), countryShortName: "US" },
+    }),
   };
 
   const res = await mondayApi.request<{
