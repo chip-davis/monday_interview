@@ -1,7 +1,7 @@
 import OrderForm, { type Option } from "./OrderForm";
 import { useListFragrances } from "./api/gen";
 
-export default function App() {
+export default function OrderPage() {
   const {
     data: options = [],
     isPending,

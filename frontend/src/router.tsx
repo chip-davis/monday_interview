@@ -3,16 +3,25 @@ import {
   createRoute,
   createRouter,
   Outlet,
+  redirect,
 } from "@tanstack/react-router";
-import App from "./App";
+import OrderPage from "./OrderPage";
 import FragrancesPage from "./FragrancesPage";
 
 const rootRoute = createRootRoute({ component: Outlet });
 
-const orderRoute = createRoute({
+const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: App,
+  beforeLoad: ({ location }) => {
+    throw redirect({ to: "/order", search: location.search, replace: true });
+  },
+});
+
+const orderRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/order",
+  component: OrderPage,
 });
 
 const fragrancesRoute = createRoute({
@@ -22,7 +31,7 @@ const fragrancesRoute = createRoute({
 });
 
 export const router = createRouter({
-  routeTree: rootRoute.addChildren([orderRoute, fragrancesRoute]),
+  routeTree: rootRoute.addChildren([indexRoute, orderRoute, fragrancesRoute]),
 });
 
 declare module "@tanstack/react-router" {
