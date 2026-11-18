@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated
 
 import jwt
@@ -5,6 +6,8 @@ from fastapi import Header, HTTPException, status
 from pydantic import BaseModel
 
 from app.core.settings import settings
+
+logger = logging.getLogger(__name__)
 
 
 class Session(BaseModel):
@@ -20,6 +23,7 @@ def decode_session(token: str) -> Session:
             algorithms=["HS256"],
         )
     except jwt.PyJWTError as exc:
+        logger.warning("session rejected: %r", exc)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "invalid session") from exc
     return Session.model_validate(payload["dat"])
 
