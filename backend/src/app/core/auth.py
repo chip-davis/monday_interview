@@ -2,10 +2,10 @@ import logging
 from typing import Annotated
 
 import jwt
-from fastapi import Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, status
 from pydantic import BaseModel
 
-from app.core.settings import settings
+from app.core.secrets import load_client_secret
 
 logger = logging.getLogger(__name__)
 
@@ -15,11 +15,14 @@ class Session(BaseModel):
     user_id: int
 
 
-def decode_session(token: str) -> Session:
+ClientSecret = Annotated[str, Depends(load_client_secret)]
+
+
+def decode_session(token: str, secret: str) -> Session:
     try:
         payload = jwt.decode(
             token.removeprefix("Bearer ").strip(),
-            settings.monday_client_secret.get_secret_value(),
+            secret,
             algorithms=["HS256"],
         )
     except jwt.PyJWTError as exc:
@@ -28,7 +31,9 @@ def decode_session(token: str) -> Session:
     return Session.model_validate(payload["dat"])
 
 
-def get_session(authorization: Annotated[str | None, Header()] = None) -> Session:
+def get_session(
+    secret: ClientSecret, authorization: Annotated[str | None, Header()] = None
+) -> Session:
     if not authorization:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "missing session")
-    return decode_session(authorization)
+    return decode_session(authorization, secret)

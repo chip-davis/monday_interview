@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 
-from app.core.auth import decode_session
+from app.core.auth import ClientSecret, decode_session
 from app.core.settings import settings
 from app.core.tokens import save_account_token
 
@@ -25,20 +25,18 @@ class _TokenResponse(BaseModel):
     access_token: str
 
 
-def _secret() -> str:
-    return settings.monday_client_secret.get_secret_value()
-
-
 @router.get("/start")
-async def oauth_start(request: Request, token: str) -> RedirectResponse:
-    session = decode_session(token)
+async def oauth_start(
+    request: Request, token: str, secret: ClientSecret
+) -> RedirectResponse:
+    session = decode_session(token, secret)
 
     state = jwt.encode(
         {
             "account_id": session.account_id,
             "exp": datetime.now(UTC) + timedelta(minutes=10),
         },
-        _secret(),
+        secret,
         algorithm="HS256",
     )
     params = {
@@ -51,10 +49,12 @@ async def oauth_start(request: Request, token: str) -> RedirectResponse:
 
 
 @router.get("/callback")
-async def oauth_callback(request: Request, code: str, state: str) -> HTMLResponse:
+async def oauth_callback(
+    request: Request, code: str, state: str, secret: ClientSecret
+) -> HTMLResponse:
     try:
         account_id = _State.model_validate(
-            jwt.decode(state, _secret(), algorithms=["HS256"])
+            jwt.decode(state, secret, algorithms=["HS256"])
         ).account_id
     except jwt.PyJWTError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "invalid state") from exc
@@ -64,7 +64,7 @@ async def oauth_callback(request: Request, code: str, state: str) -> HTMLRespons
             TOKEN_URL,
             data={
                 "client_id": settings.monday_client_id,
-                "client_secret": _secret(),
+                "client_secret": secret,
                 "code": code,
                 "redirect_uri": str(request.url_for("oauth_callback")),
             },

@@ -11,7 +11,7 @@ class Settings(BaseSettings):
 
     storage: Literal["monday", "memory"] = "monday"
     monday_client_id: str
-    monday_client_secret: SecretStr
+    monday_client_secret: SecretStr | None = None
 
 
 settings = Settings.model_validate({})
