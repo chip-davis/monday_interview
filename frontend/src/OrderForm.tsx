@@ -71,6 +71,7 @@ export default function OrderForm({ options }: { options: Option[] }) {
     candles.every((c) => c !== null);
 
   const startOrder = () => {
+    if (quantity === null) return;
     order.mutate({
       firstName,
       lastName,
