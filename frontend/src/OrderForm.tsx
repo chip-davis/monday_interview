@@ -1,10 +1,19 @@
 import { useState } from "react";
-import { Button, Dropdown, Heading, NumberField, TextField } from "@vibe/core";
+import {
+  Button,
+  Dropdown,
+  Heading,
+  NumberField,
+  TextField,
+  TextArea,
+} from "@vibe/core";
 import "@vibe/core/tokens";
 
 export type Option = { label: string; value: string; category: string };
 
 const CANDLE_COUNT = 3;
+
+const INSCRIPTION_MAX = 24;
 
 export default function OrderForm({ options }: { options: Option[] }) {
   const [firstName, setFirstName] = useState("");
@@ -13,6 +22,7 @@ export default function OrderForm({ options }: { options: Option[] }) {
   const [candles, setCandles] = useState<(Option | null)[]>(
     Array(CANDLE_COUNT).fill(null),
   );
+  const [inscription, setInscription] = useState("");
 
   const setCandle = (index: number, option: Option | null) =>
     setCandles((prev) => prev.map((c, i) => (i === index ? option : c)));
@@ -93,6 +103,16 @@ export default function OrderForm({ options }: { options: Option[] }) {
           withGroupDivider
         />
       ))}
+
+      <TextArea
+        label="Inscription (optional)"
+        placeholder="Free smells"
+        value={inscription}
+        onChange={(e) => setInscription(e.target.value)}
+        maxLength={INSCRIPTION_MAX}
+        showCharCount
+        resize={false}
+      />
 
       <Button
         onClick={startOrder}
