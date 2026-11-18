@@ -3,3 +3,5 @@
 **/.venv
 .env
 backend/static/
+.ruff_cache/
+code.tar.gz

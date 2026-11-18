@@ -46,6 +46,11 @@ fmt:
     uv run ruff check --fix src
     uv run ruff format src
 
+deploy app_id:
+    cd backend && uv export --no-dev --no-hashes --no-emit-project -o requirements.txt
+    cd frontend && npm run build
+    mapps code:push -d backend -a {{app_id}}
+
 gen:
     cd backend && uv run python -c "import json; from app.main import app; print(json.dumps(app.openapi(), indent=2))" > ../frontend/openapi.json
     cd frontend && npm run gen:api
