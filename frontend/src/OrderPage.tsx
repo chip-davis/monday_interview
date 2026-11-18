@@ -1,11 +1,14 @@
 import OrderForm, { type Option } from "./OrderForm";
+import ConnectPrompt from "./ConnectPrompt";
 import { useListFragrances } from "./api/gen";
+import { isOAuthRequired } from "./api/fetcher";
 
 export default function OrderPage() {
   const {
     data: options = [],
     isPending,
     isError,
+    error,
   } = useListFragrances({
     query: {
       select: (res) =>
@@ -38,6 +41,8 @@ export default function OrderPage() {
       >
         {isPending ? (
           <p>Loading fragrances…</p>
+        ) : isOAuthRequired(error) ? (
+          <ConnectPrompt />
         ) : isError ? (
           <p>Couldn't load fragrances.</p>
         ) : (

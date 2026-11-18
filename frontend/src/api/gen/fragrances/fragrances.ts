@@ -30,7 +30,11 @@ import type {
   HTTPValidationError
 } from '../model';
 
+import { customFetch } from '../../fetcher';
+import type { ErrorType } from '../../fetcher';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 const getHeaders = (...sources: (RequestInit['headers'] | Record<string, string | undefined>)[]) => {
@@ -74,10 +78,17 @@ export type listFragrancesResponse200 = {
   status: 200
 }
 
+export type listFragrancesResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
 export type listFragrancesResponseSuccess = (listFragrancesResponse200) & {
   headers: Headers;
 };
-;
+export type listFragrancesResponseError = (listFragrancesResponse422) & {
+  headers: Headers;
+};
 
 export const getListFragrancesUrl = () => {
 
@@ -90,30 +101,16 @@ export const getListFragrancesUrl = () => {
 /**
  * @summary List Fragrances
  */
-export const listFragrances = async ( options?: RequestInit): Promise<listFragrancesResponseSuccess> => {
+export const listFragrances = async ( options?: Parameters<typeof customFetch>[1]): Promise<listFragrancesResponseSuccess> => {
 
-  const res = await fetch(getListFragrancesUrl(),
+  return customFetch<listFragrancesResponseSuccess>(getListFragrancesUrl(),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  if (!res.ok) {
-
-    const err: globalThis.Error & {info?: any, status?: number} = new globalThis.Error();
-    const data  = body ? JSON.parse(body) : {}
-    err.info = data;
-    err.status = res.status;
-    throw err;
-  }
-  const data: listFragrancesResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as listFragrancesResponseSuccess
-}
+);}
 
 
 
@@ -126,16 +123,16 @@ export const getListFragrancesQueryKey = () => {
     }
 
 
-export const getListFragrancesQueryOptions = <TData = Awaited<ReturnType<typeof listFragrances>>, TError = globalThis.Error & { info?: unknown; status?: number }>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFragrances>>, TError, TData>>, fetch?: RequestInit}
+export const getListFragrancesQueryOptions = <TData = Awaited<ReturnType<typeof listFragrances>>, TError = ErrorType<HTTPValidationError>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFragrances>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getListFragrancesQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFragrances>>> = ({ signal }) => listFragrances({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFragrances>>> = ({ signal }) => listFragrances({ signal, ...requestOptions });
 
 
 
@@ -145,39 +142,39 @@ const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 }
 
 export type ListFragrancesQueryResult = NonNullable<Awaited<ReturnType<typeof listFragrances>>>
-export type ListFragrancesQueryError = globalThis.Error & { info?: unknown; status?: number }
+export type ListFragrancesQueryError = ErrorType<HTTPValidationError>
 
 
 /** @summary List Fragrances */
-export function useListFragrances<TData = Awaited<ReturnType<typeof listFragrances>>, TError = globalThis.Error & { info?: unknown; status?: number }>(
+export function useListFragrances<TData = Awaited<ReturnType<typeof listFragrances>>, TError = ErrorType<HTTPValidationError>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFragrances>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listFragrances>>,
           TError,
           Awaited<ReturnType<typeof listFragrances>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /** @summary List Fragrances */
-export function useListFragrances<TData = Awaited<ReturnType<typeof listFragrances>>, TError = globalThis.Error & { info?: unknown; status?: number }>(
+export function useListFragrances<TData = Awaited<ReturnType<typeof listFragrances>>, TError = ErrorType<HTTPValidationError>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFragrances>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listFragrances>>,
           TError,
           Awaited<ReturnType<typeof listFragrances>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /** @summary List Fragrances */
-export function useListFragrances<TData = Awaited<ReturnType<typeof listFragrances>>, TError = globalThis.Error & { info?: unknown; status?: number }>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFragrances>>, TError, TData>>, fetch?: RequestInit}
+export function useListFragrances<TData = Awaited<ReturnType<typeof listFragrances>>, TError = ErrorType<HTTPValidationError>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFragrances>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /** @summary List Fragrances */
-export function useListFragrances<TData = Awaited<ReturnType<typeof listFragrances>>, TError = globalThis.Error & { info?: unknown; status?: number }>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFragrances>>, TError, TData>>, fetch?: RequestInit}
+export function useListFragrances<TData = Awaited<ReturnType<typeof listFragrances>>, TError = ErrorType<HTTPValidationError>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFragrances>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -221,30 +218,16 @@ export const getCreateFragranceUrl = () => {
 /**
  * @summary Create Fragrance
  */
-export const createFragrance = async (fragranceCreate: FragranceCreate, options?: RequestInit): Promise<createFragranceResponseSuccess> => {
+export const createFragrance = async (fragranceCreate: FragranceCreate, options?: Parameters<typeof customFetch>[1]): Promise<createFragranceResponseSuccess> => {
 
-  const res = await fetch(getCreateFragranceUrl(),
+  return customFetch<createFragranceResponseSuccess>(getCreateFragranceUrl(),
   {
     ...options,
     method: 'POST',
     headers: getHeaders({ 'Content-Type': 'application/json' }, options?.headers),
     body: JSON.stringify(fragranceCreate)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  if (!res.ok) {
-
-    const err: globalThis.Error & {info?: createFragranceResponseError['data'], status?: number} = new globalThis.Error();
-    const data : createFragranceResponseError['data'] = body ? JSON.parse(body) : {}
-    err.info = data;
-    err.status = res.status;
-    throw err;
-  }
-  const data: createFragranceResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as createFragranceResponseSuccess
-}
+);}
 
 
 
@@ -252,16 +235,16 @@ export const createFragrance = async (fragranceCreate: FragranceCreate, options?
 
 export const getCreateFragranceMutationKey = () => ['createFragrance'] as const;
 
-export const getCreateFragranceMutationOptions = <TError = globalThis.Error & { info?: HTTPValidationError; status?: number },
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createFragrance>>, TError,CreateFragranceMutationVariables, TContext>, fetch?: RequestInit}
+export const getCreateFragranceMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createFragrance>>, TError,CreateFragranceMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createFragrance>>, TError,CreateFragranceMutationVariables, TContext> => {
 
 const mutationKey = getCreateFragranceMutationKey();
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -269,7 +252,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof createFragrance>>, CreateFragranceMutationVariables> = (props) => {
           const {data} = props ?? {};
 
-          return  createFragrance(data,fetchOptions)
+          return  createFragrance(data,requestOptions)
         }
 
 
@@ -281,12 +264,12 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
     export type CreateFragranceMutationResult = NonNullable<Awaited<ReturnType<typeof createFragrance>>>
     export type CreateFragranceMutationBody = FragranceCreate
-    export type CreateFragranceMutationError = globalThis.Error & { info?: HTTPValidationError; status?: number }
+    export type CreateFragranceMutationError = ErrorType<HTTPValidationError>
     export type CreateFragranceMutationVariables = {data: FragranceCreate}
 
     /** @summary Create Fragrance */
-export const useCreateFragrance = <TError = globalThis.Error & { info?: HTTPValidationError; status?: number },
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createFragrance>>, TError,CreateFragranceMutationVariables, TContext>, fetch?: RequestInit}
+export const useCreateFragrance = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createFragrance>>, TError,CreateFragranceMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createFragrance>>,
         TError,
@@ -323,30 +306,16 @@ export const getGetFragranceUrl = (fragranceId: string,) => {
 /**
  * @summary Get Fragrance
  */
-export const getFragrance = async (fragranceId: string, options?: RequestInit): Promise<getFragranceResponseSuccess> => {
+export const getFragrance = async (fragranceId: string, options?: Parameters<typeof customFetch>[1]): Promise<getFragranceResponseSuccess> => {
 
-  const res = await fetch(getGetFragranceUrl(fragranceId),
+  return customFetch<getFragranceResponseSuccess>(getGetFragranceUrl(fragranceId),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  if (!res.ok) {
-
-    const err: globalThis.Error & {info?: getFragranceResponseError['data'], status?: number} = new globalThis.Error();
-    const data : getFragranceResponseError['data'] = body ? JSON.parse(body) : {}
-    err.info = data;
-    err.status = res.status;
-    throw err;
-  }
-  const data: getFragranceResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getFragranceResponseSuccess
-}
+);}
 
 
 
@@ -359,16 +328,16 @@ export const getGetFragranceQueryKey = (fragranceId: string,) => {
     }
 
 
-export const getGetFragranceQueryOptions = <TData = Awaited<ReturnType<typeof getFragrance>>, TError = globalThis.Error & { info?: HTTPValidationError; status?: number }>(fragranceId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFragrance>>, TError, TData>>, fetch?: RequestInit}
+export const getGetFragranceQueryOptions = <TData = Awaited<ReturnType<typeof getFragrance>>, TError = ErrorType<HTTPValidationError>>(fragranceId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFragrance>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetFragranceQueryKey(fragranceId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFragrance>>> = ({ signal }) => getFragrance(fragranceId, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFragrance>>> = ({ signal }) => getFragrance(fragranceId, { signal, ...requestOptions });
 
 
 
@@ -378,39 +347,39 @@ const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 }
 
 export type GetFragranceQueryResult = NonNullable<Awaited<ReturnType<typeof getFragrance>>>
-export type GetFragranceQueryError = globalThis.Error & { info?: HTTPValidationError; status?: number }
+export type GetFragranceQueryError = ErrorType<HTTPValidationError>
 
 
 /** @summary Get Fragrance */
-export function useGetFragrance<TData = Awaited<ReturnType<typeof getFragrance>>, TError = globalThis.Error & { info?: HTTPValidationError; status?: number }>(
+export function useGetFragrance<TData = Awaited<ReturnType<typeof getFragrance>>, TError = ErrorType<HTTPValidationError>>(
  fragranceId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFragrance>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getFragrance>>,
           TError,
           Awaited<ReturnType<typeof getFragrance>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /** @summary Get Fragrance */
-export function useGetFragrance<TData = Awaited<ReturnType<typeof getFragrance>>, TError = globalThis.Error & { info?: HTTPValidationError; status?: number }>(
+export function useGetFragrance<TData = Awaited<ReturnType<typeof getFragrance>>, TError = ErrorType<HTTPValidationError>>(
  fragranceId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFragrance>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getFragrance>>,
           TError,
           Awaited<ReturnType<typeof getFragrance>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /** @summary Get Fragrance */
-export function useGetFragrance<TData = Awaited<ReturnType<typeof getFragrance>>, TError = globalThis.Error & { info?: HTTPValidationError; status?: number }>(
- fragranceId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFragrance>>, TError, TData>>, fetch?: RequestInit}
+export function useGetFragrance<TData = Awaited<ReturnType<typeof getFragrance>>, TError = ErrorType<HTTPValidationError>>(
+ fragranceId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFragrance>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /** @summary Get Fragrance */
-export function useGetFragrance<TData = Awaited<ReturnType<typeof getFragrance>>, TError = globalThis.Error & { info?: HTTPValidationError; status?: number }>(
- fragranceId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFragrance>>, TError, TData>>, fetch?: RequestInit}
+export function useGetFragrance<TData = Awaited<ReturnType<typeof getFragrance>>, TError = ErrorType<HTTPValidationError>>(
+ fragranceId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFragrance>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -455,30 +424,16 @@ export const getUpdateFragranceUrl = (fragranceId: string,) => {
  * @summary Update Fragrance
  */
 export const updateFragrance = async (fragranceId: string,
-    fragranceUpdate: FragranceUpdate, options?: RequestInit): Promise<updateFragranceResponseSuccess> => {
+    fragranceUpdate: FragranceUpdate, options?: Parameters<typeof customFetch>[1]): Promise<updateFragranceResponseSuccess> => {
 
-  const res = await fetch(getUpdateFragranceUrl(fragranceId),
+  return customFetch<updateFragranceResponseSuccess>(getUpdateFragranceUrl(fragranceId),
   {
     ...options,
     method: 'PATCH',
     headers: getHeaders({ 'Content-Type': 'application/json' }, options?.headers),
     body: JSON.stringify(fragranceUpdate)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  if (!res.ok) {
-
-    const err: globalThis.Error & {info?: updateFragranceResponseError['data'], status?: number} = new globalThis.Error();
-    const data : updateFragranceResponseError['data'] = body ? JSON.parse(body) : {}
-    err.info = data;
-    err.status = res.status;
-    throw err;
-  }
-  const data: updateFragranceResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as updateFragranceResponseSuccess
-}
+);}
 
 
 
@@ -486,16 +441,16 @@ export const updateFragrance = async (fragranceId: string,
 
 export const getUpdateFragranceMutationKey = () => ['updateFragrance'] as const;
 
-export const getUpdateFragranceMutationOptions = <TError = globalThis.Error & { info?: HTTPValidationError; status?: number },
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFragrance>>, TError,UpdateFragranceMutationVariables, TContext>, fetch?: RequestInit}
+export const getUpdateFragranceMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFragrance>>, TError,UpdateFragranceMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateFragrance>>, TError,UpdateFragranceMutationVariables, TContext> => {
 
 const mutationKey = getUpdateFragranceMutationKey();
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -503,7 +458,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateFragrance>>, UpdateFragranceMutationVariables> = (props) => {
           const {fragranceId,data} = props ?? {};
 
-          return  updateFragrance(fragranceId,data,fetchOptions)
+          return  updateFragrance(fragranceId,data,requestOptions)
         }
 
 
@@ -515,12 +470,12 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
     export type UpdateFragranceMutationResult = NonNullable<Awaited<ReturnType<typeof updateFragrance>>>
     export type UpdateFragranceMutationBody = FragranceUpdate
-    export type UpdateFragranceMutationError = globalThis.Error & { info?: HTTPValidationError; status?: number }
+    export type UpdateFragranceMutationError = ErrorType<HTTPValidationError>
     export type UpdateFragranceMutationVariables = {fragranceId: string;data: FragranceUpdate}
 
     /** @summary Update Fragrance */
-export const useUpdateFragrance = <TError = globalThis.Error & { info?: HTTPValidationError; status?: number },
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFragrance>>, TError,UpdateFragranceMutationVariables, TContext>, fetch?: RequestInit}
+export const useUpdateFragrance = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFragrance>>, TError,UpdateFragranceMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateFragrance>>,
         TError,
@@ -557,30 +512,16 @@ export const getDeleteFragranceUrl = (fragranceId: string,) => {
 /**
  * @summary Delete Fragrance
  */
-export const deleteFragrance = async (fragranceId: string, options?: RequestInit): Promise<deleteFragranceResponseSuccess> => {
+export const deleteFragrance = async (fragranceId: string, options?: Parameters<typeof customFetch>[1]): Promise<deleteFragranceResponseSuccess> => {
 
-  const res = await fetch(getDeleteFragranceUrl(fragranceId),
+  return customFetch<deleteFragranceResponseSuccess>(getDeleteFragranceUrl(fragranceId),
   {
     ...options,
     method: 'DELETE'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  if (!res.ok) {
-
-    const err: globalThis.Error & {info?: deleteFragranceResponseError['data'], status?: number} = new globalThis.Error();
-    const data : deleteFragranceResponseError['data'] = body ? JSON.parse(body) : {}
-    err.info = data;
-    err.status = res.status;
-    throw err;
-  }
-  const data: deleteFragranceResponseSuccess['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as deleteFragranceResponseSuccess
-}
+);}
 
 
 
@@ -588,16 +529,16 @@ export const deleteFragrance = async (fragranceId: string, options?: RequestInit
 
 export const getDeleteFragranceMutationKey = () => ['deleteFragrance'] as const;
 
-export const getDeleteFragranceMutationOptions = <TError = globalThis.Error & { info?: HTTPValidationError; status?: number },
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteFragrance>>, TError,DeleteFragranceMutationVariables, TContext>, fetch?: RequestInit}
+export const getDeleteFragranceMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteFragrance>>, TError,DeleteFragranceMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteFragrance>>, TError,DeleteFragranceMutationVariables, TContext> => {
 
 const mutationKey = getDeleteFragranceMutationKey();
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -605,7 +546,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteFragrance>>, DeleteFragranceMutationVariables> = (props) => {
           const {fragranceId} = props ?? {};
 
-          return  deleteFragrance(fragranceId,fetchOptions)
+          return  deleteFragrance(fragranceId,requestOptions)
         }
 
 
@@ -617,12 +558,12 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
     export type DeleteFragranceMutationResult = NonNullable<Awaited<ReturnType<typeof deleteFragrance>>>
 
-    export type DeleteFragranceMutationError = globalThis.Error & { info?: HTTPValidationError; status?: number }
+    export type DeleteFragranceMutationError = ErrorType<HTTPValidationError>
     export type DeleteFragranceMutationVariables = {fragranceId: string}
 
     /** @summary Delete Fragrance */
-export const useDeleteFragrance = <TError = globalThis.Error & { info?: HTTPValidationError; status?: number },
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteFragrance>>, TError,DeleteFragranceMutationVariables, TContext>, fetch?: RequestInit}
+export const useDeleteFragrance = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteFragrance>>, TError,DeleteFragranceMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteFragrance>>,
         TError,

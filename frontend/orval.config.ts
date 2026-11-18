@@ -14,6 +14,10 @@ export default defineConfig({
         fetch: {
           forceSuccessResponse: true,
         },
+        mutator: {
+          path: "src/api/fetcher.ts",
+          name: "customFetch",
+        },
       },
     },
   },

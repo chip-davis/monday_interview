@@ -30,6 +30,8 @@ import {
 } from "./api/gen";
 import type { Fragrance, FragranceCreate } from "./api/gen/model";
 import { monday } from "./monday";
+import ConnectPrompt from "./ConnectPrompt";
+import { isOAuthRequired } from "./api/fetcher";
 
 const EMPTY_FORM: Required<FragranceCreate> = {
   name: "",
@@ -51,7 +53,12 @@ const notify = (message: string, type: "success" | "error") =>
 
 export default function FragranceManager() {
   const queryClient = useQueryClient();
-  const { data: fragrances = [], isPending, isError } = useListFragrances({
+  const {
+    data: fragrances = [],
+    isPending,
+    isError,
+    error,
+  } = useListFragrances({
     query: { select: (res) => res.data },
   });
 
@@ -176,10 +183,14 @@ export default function FragranceManager() {
         columns={COLUMNS}
         dataState={{ isLoading: isPending, isError }}
         errorState={
-          <EmptyState
-            title="Couldn't load fragrances"
-            description="Refresh the view to try again."
-          />
+          isOAuthRequired(error) ? (
+            <ConnectPrompt />
+          ) : (
+            <EmptyState
+              title="Couldn't load fragrances"
+              description="Refresh the view to try again."
+            />
+          )
         }
         emptyState={
           <EmptyState
